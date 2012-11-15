@@ -1,0 +1,67 @@
+─
+  CHARSET ::= EOF | CHAR
+  STATUS ::= POSITION ⟪ℕ⟫ | CLOSED
+└
+
+╷═[ X ]
+  sum : 𝔽(seq X) → ℕ
+|
+  sum ∅ = 0
+  ∀ x : seq X ⦁ sum {x} = #x
+  ∀ x, y : seq X ⦁ sum({x} ∪ {y}) = sum {x} + sum {y}
+└
+
+┌ File
+  contents : seq(CHARSET ∖ {EOF})
+  status : STATUS
+└
+
+┌ FileSystem
+  files : 𝔽 File
+  maxSize : ℕ
+|
+  maxSize ≥ sum {c : seq(CHARSET ∖ {EOF}) | c = files.contents}
+└
+
+┌ OpenFile
+  ΔFile
+|
+  contents′ = contents
+  status = CLOSED
+  status′ = POSITION 0
+└
+
+┌ CloseFile
+  ΔFile
+|
+  contents′ = contents
+  status ∈ STATUS ∖ {CLOSED}
+  status′ = CLOSED
+└
+
+┌ ReadFile
+  ΔFile
+  next! : CHARSET
+|
+  contents′ = contents
+  ∃p : ℕ ⦁ 
+   	status = POSITION p  ∧
+   	(p < #contents ∧ status′ = POSITION(p + 1) ∧ next! = contents(p) ∨
+   	status′ = status ∧ next! = EOF)
+└
+
+┌ AppendFile
+  ΔFile
+  char? : CHARSET ∖ {EOF}
+|
+  status′ = status
+  contents′ = contents ⁀ ⟨char?⟩
+└
+
+┌ OverwriteFile
+  ΔFile
+  new? : seq CHARSET
+|
+  contents′ = new?
+  status′ = status
+└
